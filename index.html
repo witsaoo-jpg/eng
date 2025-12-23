@@ -3,6 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="ฝึกพูดภาษาอังกฤษกับ AI - ประเมินการออกเสียง ติดตามความก้าวหน้า">
+    <meta name="theme-color" content="#9333ea">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="English Practice">
+    <link rel="manifest" href="manifest.json">
+    <link rel="icon" type="image/png" sizes="192x192" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='0.9em' font-size='90'>🎯</text></svg>">
+    <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='0.9em' font-size='90'>🎯</text></svg>">
     <title>🎯 ฝึกสนทนาภาษาอังกฤษ</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
@@ -20,20 +28,31 @@
     <!-- หน้าเลือกสถานการณ์ -->
     <div id="scenarioSelection" class="p-4">
         <div class="max-w-4xl mx-auto py-8">
-            <div class="text-center mb-12">
+            <div class="text-center mb-8">
                 <h1 class="text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-purple-600 to-blue-600 mb-4">
                     🎯 ฝึกสนทนาภาษาอังกฤษ
                 </h1>
                 <p class="text-xl text-gray-600">เลือกสถานการณ์ที่อยากฝึก</p>
                 <div class="mt-4 inline-flex items-center gap-2 bg-green-100 text-green-800 px-4 py-2 rounded-full">
                     <span class="text-2xl">🤖</span>
-                    <span class="font-medium">AI จะสนทนาด้วยแบบเรียลไทม์!</span>
+                    <span class="font-medium">AI จะสนทนาและประเมินการออกเสียง!</span>
                 </div>
             </div>
 
-            <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-4" id="scenarioGrid"></div>
+            <!-- สถิติโดยรวม -->
+            <div class="grid md:grid-cols-4 gap-4 mb-8" id="statsOverview"></div>
 
-            <div class="mt-12 bg-white rounded-2xl p-6 shadow-lg">
+            <!-- สถานการณ์ -->
+            <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-4 mb-8" id="scenarioGrid"></div>
+
+            <!-- ปุ่มดูประวัติ -->
+            <div class="text-center mb-8">
+                <button onclick="showHistory()" class="bg-white px-6 py-3 rounded-xl shadow-lg hover:shadow-xl transition-all font-medium text-gray-800 inline-flex items-center gap-2">
+                    📚 ดูประวัติการสนทนา
+                </button>
+            </div>
+
+            <div class="bg-white rounded-2xl p-6 shadow-lg">
                 <h3 class="font-bold text-gray-800 mb-4 flex items-center gap-2">
                     📖 วิธีใช้งาน
                 </h3>
@@ -41,9 +60,19 @@
                     <li>✅ เลือกสถานการณ์ที่ต้องการฝึก</li>
                     <li>🎤 กดปุ่มไมค์เพื่อพูด หรือพิมพ์ข้อความ</li>
                     <li>🤖 AI จะตอบกลับและอ่านออกเสียงให้ฟัง</li>
+                    <li>🎯 AI จะประเมินการออกเสียงและให้คำแนะนำ</li>
                     <li>💬 สนทนาต่อเนื่องเหมือนคุยกับคนจริง</li>
-                    <li>🔄 สามารถเปลี่ยนสถานการณ์ได้ตลอด</li>
+                    <li>🏆 รับคะแนนและติดตามความก้าวหน้า</li>
                 </ul>
+            </div>
+
+            <!-- เครดิต -->
+            <div class="mt-8 text-center">
+                <div class="inline-flex items-center gap-2 bg-white px-6 py-3 rounded-full shadow-md">
+                    <span class="text-sm text-gray-600">พัฒนาโดย</span>
+                    <span class="font-bold text-purple-600">พว.วิษณุกรณ์ โอยา</span>
+                    <span class="text-sm text-gray-600">& Claude AI</span>
+                </div>
             </div>
         </div>
     </div>
@@ -52,18 +81,42 @@
     <div id="conversationView" class="hidden flex flex-col h-screen">
         <!-- Header -->
         <div class="bg-white shadow-md p-4">
-            <div class="max-w-4xl mx-auto flex items-center justify-between">
-                <div class="flex items-center gap-3">
-                    <span class="text-3xl" id="scenarioIcon"></span>
-                    <div>
-                        <h2 class="font-bold text-gray-800" id="scenarioTitle"></h2>
-                        <p class="text-sm text-gray-500">สนทนากับ AI</p>
+            <div class="max-w-4xl mx-auto">
+                <div class="flex items-center justify-between mb-3">
+                    <div class="flex items-center gap-3">
+                        <span class="text-3xl" id="scenarioIcon"></span>
+                        <div>
+                            <h2 class="font-bold text-gray-800" id="scenarioTitle"></h2>
+                            <p class="text-sm text-gray-500">สนทนากับ AI + ประเมินการออกเสียง</p>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <button onclick="showStats()" class="px-4 py-2 bg-blue-100 hover:bg-blue-200 rounded-lg transition text-sm font-medium">
+                            📊 สถิติ
+                        </button>
+                        <button onclick="resetConversation()" class="px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg transition text-sm font-medium">
+                            🔄 เปลี่ยน
+                        </button>
                     </div>
                 </div>
-                <button onclick="resetConversation()" class="flex items-center gap-2 px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg transition">
-                    <span>🔄</span>
-                    <span class="hidden sm:inline">เปลี่ยนสถานการณ์</span>
-                </button>
+                <!-- แถบคะแนน -->
+                <div class="flex items-center gap-4 text-sm">
+                    <div class="flex items-center gap-2">
+                        <span>🏆</span>
+                        <span class="font-bold text-purple-600" id="currentScore">0</span>
+                        <span class="text-gray-500">คะแนน</span>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <span>💬</span>
+                        <span class="font-bold text-blue-600" id="messageCount">0</span>
+                        <span class="text-gray-500">ข้อความ</span>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <span>🎤</span>
+                        <span class="font-bold text-green-600" id="speakCount">0</span>
+                        <span class="text-gray-500">ครั้งที่พูด</span>
+                    </div>
+                </div>
             </div>
         </div>
 
@@ -97,6 +150,28 @@
                     กดไมค์เพื่อพูด หรือพิมพ์ข้อความ
                 </p>
             </div>
+        </div>
+    </div>
+
+    <!-- Modal สถิติ -->
+    <div id="statsModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+        <div class="bg-white rounded-2xl p-6 max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            <div class="flex items-center justify-between mb-6">
+                <h2 class="text-2xl font-bold text-gray-800">📊 สถิติและความก้าวหน้า</h2>
+                <button onclick="closeStats()" class="text-gray-500 hover:text-gray-700 text-2xl">&times;</button>
+            </div>
+            <div id="statsContent"></div>
+        </div>
+    </div>
+
+    <!-- Modal ประวัติ -->
+    <div id="historyModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+        <div class="bg-white rounded-2xl p-6 max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+            <div class="flex items-center justify-between mb-6">
+                <h2 class="text-2xl font-bold text-gray-800">📚 ประวัติการสนทนา</h2>
+                <button onclick="closeHistory()" class="text-gray-500 hover:text-gray-700 text-2xl">&times;</button>
+            </div>
+            <div id="historyContent"></div>
         </div>
     </div>
 
@@ -152,6 +227,84 @@
         let recognition = null;
         let isListening = false;
         let isAISpeaking = false;
+        
+        // ข้อมูลสถิติ
+        let stats = {
+            totalScore: 0,
+            totalMessages: 0,
+            totalSpeaks: 0,
+            vocabulary: new Set(),
+            pronunciationIssues: {},
+            sessionScore: 0,
+            sessionMessages: 0,
+            sessionSpeaks: 0
+        };
+
+        // โหลดข้อมูล
+        function loadData() {
+            const saved = localStorage.getItem('englishPracticeStats');
+            if (saved) {
+                const parsed = JSON.parse(saved);
+                stats = {
+                    ...parsed,
+                    vocabulary: new Set(parsed.vocabulary || []),
+                    sessionScore: 0,
+                    sessionMessages: 0,
+                    sessionSpeaks: 0
+                };
+            }
+        }
+
+        // บันทึกข้อมูล
+        function saveData() {
+            const toSave = {
+                ...stats,
+                vocabulary: Array.from(stats.vocabulary)
+            };
+            localStorage.setItem('englishPracticeStats', JSON.stringify(toSave));
+        }
+
+        // เพิ่มคะแนน
+        function addScore(points) {
+            stats.totalScore += points;
+            stats.sessionScore += points;
+            updateScoreDisplay();
+            saveData();
+        }
+
+        // อัพเดทการแสดงคะแนน
+        function updateScoreDisplay() {
+            document.getElementById('currentScore').textContent = stats.sessionScore;
+            document.getElementById('messageCount').textContent = stats.sessionMessages;
+            document.getElementById('speakCount').textContent = stats.sessionSpeaks;
+        }
+
+        // แสดงสถิติโดยรวม
+        function renderStatsOverview() {
+            const container = document.getElementById('statsOverview');
+            container.innerHTML = `
+                <div class="bg-white rounded-xl p-4 shadow-md">
+                    <div class="text-2xl mb-2">🏆</div>
+                    <div class="text-2xl font-bold text-purple-600">${stats.totalScore}</div>
+                    <div class="text-sm text-gray-600">คะแนนรวม</div>
+                </div>
+                <div class="bg-white rounded-xl p-4 shadow-md">
+                    <div class="text-2xl mb-2">💬</div>
+                    <div class="text-2xl font-bold text-blue-600">${stats.totalMessages}</div>
+                    <div class="text-sm text-gray-600">ข้อความทั้งหมด</div>
+                </div>
+                <div class="bg-white rounded-xl p-4 shadow-md">
+                    <div class="text-2xl mb-2">🎤</div>
+                    <div class="text-2xl font-bold text-green-600">${stats.totalSpeaks}</div>
+                    <div class="text-sm text-gray-600">ครั้งที่พูด</div>
+                </div>
+                <div class="bg-white rounded-xl p-4 shadow-md">
+                    <div class="text-2xl mb-2">📝</div>
+                    <div class="text-2xl font-bold text-orange-600">${stats.vocabulary.size}</div>
+                    <div class="text-sm text-gray-600">คำศัพท์</div>
+                </div>
+            `;
+        }
 
         // สร้างการ์ดสถานการณ์
         function renderScenarios() {
@@ -169,43 +322,111 @@
             currentScenario = scenarios.find(s => s.id === id);
             messages = [{ role: 'assistant', content: currentScenario.greeting }];
             
+            stats.sessionScore = 0;
+            stats.sessionMessages = 0;
+            stats.sessionSpeaks = 0;
+            
             document.getElementById('scenarioSelection').classList.add('hidden');
             document.getElementById('conversationView').classList.remove('hidden');
             document.getElementById('scenarioIcon').textContent = currentScenario.icon;
             document.getElementById('scenarioTitle').textContent = currentScenario.title;
             
+            updateScoreDisplay();
             renderMessages();
             speakText(currentScenario.greeting);
+            
+            // บันทึกเซสชัน
+            saveSession();
+        }
+
+        // บันทึกเซสชัน
+        function saveSession() {
+            const sessions = JSON.parse(localStorage.getItem('englishPracticeSessions') || '[]');
+            sessions.unshift({
+                scenario: currentScenario.title,
+                date: new Date().toISOString(),
+                messages: []
+            });
+            if (sessions.length > 20) sessions.pop();
+            localStorage.setItem('englishPracticeSessions', JSON.stringify(sessions));
+        }
+
+        // อัพเดทเซสชัน
+        function updateSession(message) {
+            const sessions = JSON.parse(localStorage.getItem('englishPracticeSessions') || '[]');
+            if (sessions[0]) {
+                sessions[0].messages.push(message);
+                localStorage.setItem('englishPracticeSessions', JSON.stringify(sessions));
+            }
         }
 
         // แสดงข้อความ
         function renderMessages() {
             const list = document.getElementById('messagesList');
-            list.innerHTML = messages.map(msg => `
-                <div class="flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}">
-                    <div class="max-w-[80%] rounded-2xl px-5 py-3 ${
-                        msg.role === 'user' 
-                            ? 'bg-purple-600 text-white' 
-                            : 'bg-white text-gray-800 shadow-md'
-                    }">
-                        <p class="text-base leading-relaxed">${msg.content}</p>
+            list.innerHTML = messages.map(msg => {
+                if (msg.role === 'system') {
+                    return `
+                        <div class="flex justify-center my-4">
+                            <div class="bg-gradient-to-r from-yellow-100 to-orange-100 border-2 border-yellow-400 rounded-xl px-6 py-4 max-w-2xl shadow-md">
+                                <div class="flex items-start gap-3">
+                                    <span class="text-2xl">🎯</span>
+                                    <div class="flex-1">
+                                        <h4 class="font-bold text-orange-800 mb-2">การประเมินการออกเสียง</h4>
+                                        <div class="text-gray-700 whitespace-pre-line">${msg.content}</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                }
+                return `
+                    <div class="flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}">
+                        <div class="max-w-[80%] rounded-2xl px-5 py-3 ${
+                            msg.role === 'user' 
+                                ? 'bg-purple-600 text-white' 
+                                : 'bg-white text-gray-800 shadow-md'
+                        }">
+                            <p class="text-base leading-relaxed">${msg.content}</p>
+                        </div>
                     </div>
-                </div>
-            `).join('');
+                `;
+            }).join('');
             
             list.scrollTop = list.scrollHeight;
         }
 
         // ส่งข้อความ
-        async function sendMessage() {
+        async function sendMessage(spokenText = null) {
             const input = document.getElementById('messageInput');
-            const text = input.value.trim();
+            const text = spokenText || input.value.trim();
             
             if (!text || !currentScenario) return;
             
             messages.push({ role: 'user', content: text });
             input.value = '';
             renderMessages();
+            
+            // อัพเดทสถิติ
+            stats.totalMessages++;
+            stats.sessionMessages++;
+            addScore(5);
+            
+            // เก็บคำศัพท์
+            text.toLowerCase().split(/\s+/).forEach(word => {
+                const cleaned = word.replace(/[^a-z]/g, '');
+                if (cleaned.length > 2) stats.vocabulary.add(cleaned);
+            });
+            
+            updateSession({ role: 'user', content: text });
+            
+            // ถ้ามาจากการพูด ให้ AI ประเมินการออกเสียง
+            if (spokenText) {
+                stats.totalSpeaks++;
+                stats.sessionSpeaks++;
+                addScore(10);
+                updateScoreDisplay();
+                await analyzePronunciation(spokenText);
+            }
             
             showThinking();
             
@@ -219,7 +440,7 @@
                         model: 'claude-sonnet-4-20250514',
                         max_tokens: 150,
                         system: currentScenario.systemPrompt,
-                        messages: messages.map(msg => ({
+                        messages: messages.filter(m => m.role !== 'system').map(msg => ({
                             role: msg.role === 'assistant' ? 'assistant' : 'user',
                             content: msg.content
                         }))
@@ -232,6 +453,7 @@
                 hideThinking();
                 messages.push({ role: 'assistant', content: aiResponse });
                 renderMessages();
+                updateSession({ role: 'assistant', content: aiResponse });
                 speakText(aiResponse);
 
             } catch (error) {
@@ -242,6 +464,224 @@
                 renderMessages();
                 speakText(errorMsg);
             }
+            
+            saveData();
+            updateScoreDisplay();
+        }
+
+        // วิเคราะห์การออกเสียง
+        async function analyzePronunciation(spokenText) {
+            showThinking();
+            
+            try {
+                const response = await fetch('https://api.anthropic.com/v1/messages', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        model: 'claude-sonnet-4-20250514',
+                        max_tokens: 200,
+                        messages: [{
+                            role: 'user',
+                            content: `Analyze this English speech from a Thai learner: "${spokenText}"
+
+Provide brief feedback in Thai (3-4 lines max) covering:
+1. Overall pronunciation quality (Good/Fair/Needs practice)
+2. Specific sounds that might need work (if any, like th, r, v, l)
+3. One quick tip for improvement
+
+Keep it encouraging and concise!`
+                        }]
+                    })
+                });
+
+                const data = await response.json();
+                const feedback = data.content[0].text;
+                
+                hideThinking();
+                messages.push({ role: 'system', content: feedback });
+                renderMessages();
+                updateSession({ role: 'system', content: feedback });
+                
+                // เก็บสถิติปัญหาการออกเสียง
+                const soundMatches = feedback.match(/เสียง\s+"?([a-z]+)"?/gi);
+                if (soundMatches) {
+                    soundMatches.forEach(match => {
+                        const sound = match.replace(/เสียง\s+"?/i, '').replace(/"?$/, '');
+                        stats.pronunciationIssues[sound] = (stats.pronunciationIssues[sound] || 0) + 1;
+                    });
+                }
+                
+                addScore(20);
+                saveData();
+
+            } catch (error) {
+                console.error('Pronunciation analysis error:', error);
+                hideThinking();
+            }
+        }
+
+        // แสดงสถิติ
+        function showStats() {
+            const modal = document.getElementById('statsModal');
+            const content = document.getElementById('statsContent');
+            
+            const topIssues = Object.entries(stats.pronunciationIssues)
+                .sort((a, b) => b[1] - a[1])
+                .slice(0, 5);
+            
+            const recentWords = Array.from(stats.vocabulary).slice(-10).reverse();
+            
+            content.innerHTML = `
+                <div class="space-y-6">
+                    <!-- คะแนนและความก้าวหน้า -->
+                    <div class="bg-gradient-to-r from-purple-50 to-blue-50 rounded-xl p-6">
+                        <h3 class="font-bold text-lg mb-4 flex items-center gap-2">
+                            <span>📈</span> ความก้าวหน้าโดยรวม
+                        </h3>
+                        <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                            <div class="text-center">
+                                <div class="text-3xl font-bold text-purple-600">${stats.totalScore}</div>
+                                <div class="text-sm text-gray-600">คะแนนรวม</div>
+                            </div>
+                            <div class="text-center">
+                                <div class="text-3xl font-bold text-blue-600">${stats.totalMessages}</div>
+                                <div class="text-sm text-gray-600">ข้อความ</div>
+                            </div>
+                            <div class="text-center">
+                                <div class="text-3xl font-bold text-green-600">${stats.totalSpeaks}</div>
+                                <div class="text-sm text-gray-600">ครั้งที่พูด</div>
+                            </div>
+                            <div class="text-center">
+                                <div class="text-3xl font-bold text-orange-600">${stats.vocabulary.size}</div>
+                                <div class="text-sm text-gray-600">คำศัพท์</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- เสียงที่ต้องฝึก -->
+                    ${topIssues.length > 0 ? `
+                    <div class="bg-yellow-50 rounded-xl p-6">
+                        <h3 class="font-bold text-lg mb-4 flex items-center gap-2">
+                            <span>🎯</span> เสียงที่ต้องฝึกบ่อยๆ
+                        </h3>
+                        <div class="space-y-2">
+                            ${topIssues.map(([sound, count]) => `
+                                <div class="flex items-center justify-between bg-white rounded-lg px-4 py-3">
+                                    <span class="font-medium">เสียง "${sound}"</span>
+                                    <span class="bg-yellow-200 px-3 py-1 rounded-full text-sm font-bold">${count} ครั้ง</span>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                    ` : ''}
+
+                    <!-- คำศัพท์ล่าสุด -->
+                    ${recentWords.length > 0 ? `
+                    <div class="bg-green-50 rounded-xl p-6">
+                        <h3 class="font-bold text-lg mb-4 flex items-center gap-2">
+                            <span>📝</span> คำศัพท์ที่ใช้ล่าสุด
+                        </h3>
+                        <div class="flex flex-wrap gap-2">
+                            ${recentWords.map(word => `
+                                <span class="bg-white px-3 py-2 rounded-lg text-sm font-medium border border-green-200">${word}</span>
+                            `).join('')}
+                        </div>
+                    </div>
+                    ` : ''}
+
+                    <!-- เซสชันปัจจุบัน -->
+                    <div class="bg-blue-50 rounded-xl p-6">
+                        <h3 class="font-bold text-lg mb-4 flex items-center gap-2">
+                            <span>💫</span> เซสชันนี้
+                        </h3>
+                        <div class="grid grid-cols-3 gap-4">
+                            <div class="text-center bg-white rounded-lg p-3">
+                                <div class="text-2xl font-bold text-purple-600">${stats.sessionScore}</div>
+                                <div class="text-xs text-gray-600">คะแนน</div>
+                            </div>
+                            <div class="text-center bg-white rounded-lg p-3">
+                                <div class="text-2xl font-bold text-blue-600">${stats.sessionMessages}</div>
+                                <div class="text-xs text-gray-600">ข้อความ</div>
+                            </div>
+                            <div class="text-center bg-white rounded-lg p-3">
+                                <div class="text-2xl font-bold text-green-600">${stats.sessionSpeaks}</div>
+                                <div class="text-xs text-gray-600">พูด</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            modal.classList.remove('hidden');
+        }
+
+        function closeStats() {
+            document.getElementById('statsModal').classList.add('hidden');
+        }
+
+        // แสดงประวัติ
+        function showHistory() {
+            const modal = document.getElementById('historyModal');
+            const content = document.getElementById('historyContent');
+            const sessions = JSON.parse(localStorage.getItem('englishPracticeSessions') || '[]');
+            
+            if (sessions.length === 0) {
+                content.innerHTML = `
+                    <div class="text-center py-12 text-gray-500">
+                        <div class="text-6xl mb-4">📚</div>
+                        <p>ยังไม่มีประวัติการสนทนา</p>
+                        <p class="text-sm mt-2">เริ่มสนทนาเพื่อสร้างประวัติ</p>
+                    </div>
+                `;
+            } else {
+                content.innerHTML = sessions.map((session, idx) => {
+                    const date = new Date(session.date);
+                    const messageCount = session.messages.length;
+                    return `
+                        <div class="bg-white rounded-xl p-6 shadow-md mb-4 hover:shadow-lg transition">
+                            <div class="flex items-start justify-between mb-3">
+                                <div>
+                                    <h3 class="font-bold text-lg">${session.scenario}</h3>
+                                    <p class="text-sm text-gray-500">${date.toLocaleDateString('th-TH', { 
+                                        year: 'numeric', 
+                                        month: 'long', 
+                                        day: 'numeric',
+                                        hour: '2-digit',
+                                        minute: '2-digit'
+                                    })}</p>
+                                </div>
+                                <span class="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm font-medium">
+                                    ${messageCount} ข้อความ
+                                </span>
+                            </div>
+                            <div class="space-y-2 max-h-40 overflow-y-auto">
+                                ${session.messages.slice(0, 5).map(msg => `
+                                    <div class="text-sm ${msg.role === 'system' ? 'bg-yellow-50 p-2 rounded' : ''}">
+                                        <span class="font-medium ${
+                                            msg.role === 'user' ? 'text-purple-600' : 
+                                            msg.role === 'assistant' ? 'text-blue-600' : 
+                                            'text-orange-600'
+                                        }">
+                                            ${msg.role === 'user' ? '👤 คุณ' : 
+                                              msg.role === 'assistant' ? '🤖 AI' : '🎯 ประเมิน'}:
+                                        </span>
+                                        ${msg.content.substring(0, 100)}${msg.content.length > 100 ? '...' : ''}
+                                    </div>
+                                `).join('')}
+                                ${messageCount > 5 ? `<p class="text-xs text-gray-500 text-center mt-2">และอีก ${messageCount - 5} ข้อความ</p>` : ''}
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+            }
+            
+            modal.classList.remove('hidden');
+        }
+
+        function closeHistory() {
+            document.getElementById('historyModal').classList.add('hidden');
         }
 
         // แสดงสถานะ thinking
@@ -272,7 +712,6 @@
         function speakText(text) {
             window.speechSynthesis.cancel();
             
-            // รอให้ voices โหลดเสร็จ
             let voices = window.speechSynthesis.getVoices();
             if (voices.length === 0) {
                 window.speechSynthesis.onvoiceschanged = () => {
@@ -287,7 +726,6 @@
         function speakWithVoice(text, voices) {
             const utterance = new SpeechSynthesisUtterance(text);
             
-            // เลือกเสียงที่ดีที่สุด - ลำดับความสำคัญ
             const preferredVoices = [
                 'Google US English',
                 'Google UK English Female',
@@ -299,10 +737,8 @@
                 'Daniel'
             ];
             
-            // หาเสียงภาษาอังกฤษที่ดีที่สุด
             let selectedVoice = null;
             
-            // ลองหาเสียงที่ต้องการก่อน
             for (let preferred of preferredVoices) {
                 selectedVoice = voices.find(voice => 
                     voice.name.includes(preferred) && voice.lang.startsWith('en')
@@ -310,7 +746,6 @@
                 if (selectedVoice) break;
             }
             
-            // ถ้าไม่เจอ ให้เลือกเสียงภาษาอังกฤษแบบ natural
             if (!selectedVoice) {
                 selectedVoice = voices.find(voice => 
                     voice.lang.startsWith('en') && 
@@ -318,7 +753,6 @@
                 );
             }
             
-            // ถ้ายังไม่เจอ เลือกเสียงอังกฤษตัวแรก
             if (!selectedVoice) {
                 selectedVoice = voices.find(voice => voice.lang.startsWith('en'));
             }
@@ -328,9 +762,9 @@
             }
             
             utterance.lang = 'en-US';
-            utterance.rate = 0.95;  // ความเร็วปกติเล็กน้อย
-            utterance.pitch = 1.0;   // ระดับเสียงปกติ
-            utterance.volume = 1.0;  // ความดังเต็ม
+            utterance.rate = 0.95;
+            utterance.pitch = 1.0;
+            utterance.volume = 1.0;
             
             utterance.onstart = () => {
                 isAISpeaking = true;
@@ -361,7 +795,7 @@
                     document.getElementById('messageInput').value = text;
                     isListening = false;
                     updateButtons();
-                    sendMessage();
+                    sendMessage(text);
                 };
 
                 recognition.onerror = (event) => {
@@ -421,6 +855,8 @@
             document.getElementById('scenarioSelection').classList.remove('hidden');
             document.getElementById('conversationView').classList.add('hidden');
             document.getElementById('messageInput').value = '';
+            
+            renderStatsOverview();
         }
 
         // Event listeners
@@ -429,8 +865,60 @@
         });
 
         // เริ่มต้น
+        loadData();
         renderScenarios();
+        renderStatsOverview();
         initSpeechRecognition();
+
+        // Service Worker Registration
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('sw.js')
+                    .then(reg => console.log('Service Worker registered'))
+                    .catch(err => console.log('Service Worker registration failed'));
+            });
+        }
+
+        // PWA Install Prompt
+        let deferredPrompt;
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            deferredPrompt = e;
+            showInstallButton();
+        });
+
+        function showInstallButton() {
+            const installDiv = document.createElement('div');
+            installDiv.id = 'installPrompt';
+            installDiv.className = 'fixed bottom-4 right-4 bg-purple-600 text-white px-6 py-3 rounded-full shadow-lg z-50 flex items-center gap-3 cursor-pointer hover:bg-purple-700 transition';
+            installDiv.innerHTML = `
+                <span>📱</span>
+                <span class="font-medium">ติดตั้งแอป</span>
+                <button onclick="closeInstallPrompt()" class="ml-2 text-white hover:text-gray-200">&times;</button>
+            `;
+            installDiv.onclick = (e) => {
+                if (e.target.tagName !== 'BUTTON') installApp();
+            };
+            document.body.appendChild(installDiv);
+        }
+
+        function installApp() {
+            if (deferredPrompt) {
+                deferredPrompt.prompt();
+                deferredPrompt.userChoice.then((choiceResult) => {
+                    if (choiceResult.outcome === 'accepted') {
+                        console.log('User accepted the install prompt');
+                    }
+                    deferredPrompt = null;
+                    closeInstallPrompt();
+                });
+            }
+        }
+
+        function closeInstallPrompt() {
+            const prompt = document.getElementById('installPrompt');
+            if (prompt) prompt.remove();
+        }
     </script>
 </body>
 </html>
