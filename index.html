@@ -789,9 +789,18 @@ Keep it encouraging and concise!`
                 recognition.continuous = false;
                 recognition.interimResults = false;
                 recognition.lang = 'en-US';
+                recognition.maxAlternatives = 1;
+
+                recognition.onstart = () => {
+                    console.log('Speech recognition started');
+                    isListening = true;
+                    updateButtons();
+                };
 
                 recognition.onresult = (event) => {
+                    console.log('Speech recognition result:', event);
                     const text = event.results[0][0].transcript;
+                    console.log('Recognized text:', text);
                     document.getElementById('messageInput').value = text;
                     isListening = false;
                     updateButtons();
@@ -802,20 +811,70 @@ Keep it encouraging and concise!`
                     console.error('Speech recognition error:', event.error);
                     isListening = false;
                     updateButtons();
+                    
+                    // แสดงข้อความแจ้งเตือน
+                    let errorMsg = '';
+                    switch(event.error) {
+                        case 'no-speech':
+                            errorMsg = 'ไม่ได้ยินเสียงพูด กรุณาลองอีกครั้ง';
+                            break;
+                        case 'audio-capture':
+                            errorMsg = 'ไม่พบไมโครโฟน กรุณาตรวจสอบอุปกรณ์';
+                            break;
+                        case 'not-allowed':
+                            errorMsg = 'กรุณาอนุญาตให้เข้าถึงไมโครโฟน';
+                            break;
+                        case 'network':
+                            errorMsg = 'เกิดปัญหาการเชื่อมต่อเครือข่าย';
+                            break;
+                        default:
+                            errorMsg = 'เกิดข้อผิดพลาด: ' + event.error;
+                    }
+                    
+                    alert(errorMsg);
                 };
 
                 recognition.onend = () => {
+                    console.log('Speech recognition ended');
                     isListening = false;
                     updateButtons();
                 };
+            } else {
+                console.error('Speech recognition not supported');
+                alert('เบราว์เซอร์นี้ไม่รองรับการรับรู้เสียง กรุณาใช้ Chrome หรือ Edge');
             }
         }
 
-        function startListening() {
-            if (recognition && !isListening && !isAISpeaking) {
+        async function startListening() {
+            if (!recognition) {
+                alert('ระบบรับรู้เสียงไม่พร้อมใช้งาน');
+                return;
+            }
+
+            if (isListening) {
+                console.log('Already listening');
+                return;
+            }
+
+            if (isAISpeaking) {
+                alert('กรุณารอให้ AI พูดจบก่อน');
+                return;
+            }
+
+            try {
+                // ขออนุญาตใช้ไมโครโฟน
+                const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                stream.getTracks().forEach(track => track.stop()); // ปิดทันที เราแค่ต้องการ permission
+                
+                console.log('Starting recognition...');
                 isListening = true;
                 updateButtons();
                 recognition.start();
+            } catch (err) {
+                console.error('Microphone permission error:', err);
+                alert('กรุณาอนุญาตให้เข้าถึงไมโครโฟนในการตั้งค่าเบราว์เซอร์');
+                isListening = false;
+                updateButtons();
             }
         }
 
