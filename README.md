@@ -29,8 +29,8 @@ Option 2: GitHub Pages
 Option 3: Local Development
 bash
 
-git clone https://github.com/[your-username]/[repo-name].git
-cd [repo-name]
+git clone https://github.com/[witsao-jpg]/[eng].git
+cd [eng]
 # Open english-practice.html in your browser
 
 📖 How to Use
