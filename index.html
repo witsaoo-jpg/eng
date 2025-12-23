@@ -271,9 +271,66 @@
         // อ่านออกเสียง
         function speakText(text) {
             window.speechSynthesis.cancel();
+            
+            // รอให้ voices โหลดเสร็จ
+            let voices = window.speechSynthesis.getVoices();
+            if (voices.length === 0) {
+                window.speechSynthesis.onvoiceschanged = () => {
+                    voices = window.speechSynthesis.getVoices();
+                    speakWithVoice(text, voices);
+                };
+            } else {
+                speakWithVoice(text, voices);
+            }
+        }
+
+        function speakWithVoice(text, voices) {
             const utterance = new SpeechSynthesisUtterance(text);
+            
+            // เลือกเสียงที่ดีที่สุด - ลำดับความสำคัญ
+            const preferredVoices = [
+                'Google US English',
+                'Google UK English Female',
+                'Microsoft Zira',
+                'Microsoft David',
+                'Samantha',
+                'Alex',
+                'Karen',
+                'Daniel'
+            ];
+            
+            // หาเสียงภาษาอังกฤษที่ดีที่สุด
+            let selectedVoice = null;
+            
+            // ลองหาเสียงที่ต้องการก่อน
+            for (let preferred of preferredVoices) {
+                selectedVoice = voices.find(voice => 
+                    voice.name.includes(preferred) && voice.lang.startsWith('en')
+                );
+                if (selectedVoice) break;
+            }
+            
+            // ถ้าไม่เจอ ให้เลือกเสียงภาษาอังกฤษแบบ natural
+            if (!selectedVoice) {
+                selectedVoice = voices.find(voice => 
+                    voice.lang.startsWith('en') && 
+                    (voice.name.includes('Natural') || voice.name.includes('Premium'))
+                );
+            }
+            
+            // ถ้ายังไม่เจอ เลือกเสียงอังกฤษตัวแรก
+            if (!selectedVoice) {
+                selectedVoice = voices.find(voice => voice.lang.startsWith('en'));
+            }
+            
+            if (selectedVoice) {
+                utterance.voice = selectedVoice;
+            }
+            
             utterance.lang = 'en-US';
-            utterance.rate = 0.9;
+            utterance.rate = 0.95;  // ความเร็วปกติเล็กน้อย
+            utterance.pitch = 1.0;   // ระดับเสียงปกติ
+            utterance.volume = 1.0;  // ความดังเต็ม
             
             utterance.onstart = () => {
                 isAISpeaking = true;
